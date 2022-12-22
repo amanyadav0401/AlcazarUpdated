@@ -160,6 +160,10 @@ contract Lottery2 is ReentrancyGuard, Initializable, VRFv2Consumer {
         emit BuyTicket(_raffleNumber, msg.sender,ticketStart, raffleInfo.ticketCounter );
     }
 
+    function changeOperator(address _address) external onlyAdmin{
+        operator = _address;
+    }
+
 
     function updateRewardToken(uint256 _raffleNumber, address _rewardToken)
         external
