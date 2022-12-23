@@ -37,8 +37,6 @@ contract Lottery2 is ReentrancyGuard, Initializable, VRFv2Consumer {
     
     event BurnWalletUpdated(address burnWallet);
 
-    event BurnPercentUpdated(uint16 burnPercent);
-
     event ProfitWallet1Updated(address _profitWallet1);
 
     event ProfitWallet2Updated(address _profitWallet2);
@@ -53,7 +51,7 @@ contract Lottery2 is ReentrancyGuard, Initializable, VRFv2Consumer {
 
     event WinnerDeclared(uint256 _raffleId, address _winner, uint256 _tokenAmount);
 
-    event ProfitPercentUpdated(uint16 _percent);
+    event BurnAndProfitPercentUpdated(uint16 _burnPercent, uint16 _profitPercent);
 
 
 
@@ -107,15 +105,13 @@ contract Lottery2 is ReentrancyGuard, Initializable, VRFv2Consumer {
         emit RaffleCreated(totalRaffles,_raffleName, _maxTickets, _ticketPrice, _startTime, _endTime, 10000 - profitPercent-burnPercent,_rewardToken);
     }
 
-    function updateProfitPercent(uint16 _percent) external onlyOperator{
-        profitPercent = _percent;
-        emit ProfitPercentUpdated(_percent);
-    }
  
-    function updateBurnPercent(uint16 _bp) external onlyOperator{
-        burnPercent = _bp;
-        emit BurnPercentUpdated(burnPercent);
+    function updateBurnAndProfitPercent(uint16 _burnBp, uint16 _profitBp) external onlyOperator{
+        burnPercent = _burnBp;
+        profitPercent = _profitBp;
+        emit BurnAndProfitPercentUpdated(_burnBp, _profitBp);
     }
+
 
     function updateProfit1Address(address payable _profitWallet1) external onlyAdmin{
         profitWallet1 = _profitWallet1;
@@ -130,6 +126,10 @@ contract Lottery2 is ReentrancyGuard, Initializable, VRFv2Consumer {
     function updateProfitSplitPercent(uint16 _bp) external onlyAdmin{
         profitSplit1BP = _bp;
         emit ProfitSplitPercentUpdated(_bp, 10000 - _bp);
+    }
+
+    function changeAdmin(address _newAdmin) external onlyAdmin {
+        admin = _newAdmin;
     }
     
    
