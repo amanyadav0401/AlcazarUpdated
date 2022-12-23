@@ -18,8 +18,8 @@ contract Lottery2 is ReentrancyGuard, Initializable, VRFv2Consumer {
     address  payable public profitWallet2;
     address public operator;
     address public admin;
-    IERC20 alcazarToken;
-    address WETH;
+    IERC20 public alcazarToken;
+    address public WETH;
     IUniswapV2Router02 public router;
     uint16 public profitPercent; // in BP 10000.
     uint16 public burnPercent;
@@ -50,6 +50,10 @@ contract Lottery2 is ReentrancyGuard, Initializable, VRFv2Consumer {
     event RewardClaimed(address _to, address _rewardToken, uint _amount);
 
     event burnCollected(uint256 _amount, address _to);
+
+    event WinnerDeclared(uint256 _raffleId, address _winner, uint256 _tokenAmount);
+
+    event ProfitPercentUpdated(uint16 _percent);
 
 
 
@@ -103,7 +107,12 @@ contract Lottery2 is ReentrancyGuard, Initializable, VRFv2Consumer {
         emit RaffleCreated(totalRaffles,_raffleName, _maxTickets, _ticketPrice, _startTime, _endTime, 10000 - profitPercent-burnPercent,_rewardToken);
     }
 
-    function updateBurnPercent(uint16 _bp) external onlyAdmin{
+    function updateProfitPercent(uint16 _percent) external onlyOperator{
+        profitPercent = _percent;
+        emit ProfitPercentUpdated(_percent);
+    }
+ 
+    function updateBurnPercent(uint16 _bp) external onlyOperator{
         burnPercent = _bp;
         emit BurnPercentUpdated(burnPercent);
     }
@@ -160,10 +169,6 @@ contract Lottery2 is ReentrancyGuard, Initializable, VRFv2Consumer {
         emit BuyTicket(_raffleNumber, msg.sender,ticketStart, raffleInfo.ticketCounter );
     }
 
-    function changeOperator(address _address) external onlyAdmin{
-        operator = _address;
-    }
-
 
     function updateRewardToken(uint256 _raffleNumber, address _rewardToken)
         external
@@ -175,6 +180,10 @@ contract Lottery2 is ReentrancyGuard, Initializable, VRFv2Consumer {
             "Raffle already started."
         );
         raffleInfo.raffleRewardToken = _rewardToken;
+    }
+
+    function changeOperator(address _address) external onlyAdmin{
+        operator = _address;
     }
 
     function checkTicketOwner(uint _raffleNumber, uint16 _ticketNumber) external view returns(address){
@@ -213,6 +222,7 @@ contract Lottery2 is ReentrancyGuard, Initializable, VRFv2Consumer {
         raffleInfo.rewardPercent) / 10000;
         uint amount = swapRewardInToken(raffleInfo.raffleRewardToken, reward);
         raffleInfo.raffleRewardTokenAmount = amount;
+        emit WinnerDeclared(_raffleNumber, raffleInfo.ticketOwner[winnerTicketNumber], amount);
         }
 
     function claimReward(uint256 _raffleNumber) external nonReentrant returns(bool){
